@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Chat Test</title>
+		<script src="/socket.io/socket.io.js" type="text/javascript" charset="utf-8" async defer></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>	
+		<script>
+			$(document).ready(function () {
+				$('#connect').click(function () {
+					var socket = io.connect('http://localhost');
+					var nickname = $('#nickname').val();
+					$('#nickname').hide();
+					$(this).hide();
+					$('#messages').append('<li>Connected</li>');
+					
+					$('#send').click(function () {
+						var msg = $('#message').val();
+						socket.emit('chat message sent', msg);
+						$('#messages').append('<li><strong>Me:</strong> ' + msg);
+						$('#message').val("");
+					});
+
+					$('#message').keyup(function (e) {
+						if (e.keyCode == 13) {
+							var msg = $('#message').val();
+							socket.emit('chat message sent', msg);
+							$('#messages').append('<li><strong>Me:</strong> ' + msg);
+							$('#message').val("");
+						}
+					})
+
+					socket.emit('set nickname', nickname);
+					socket.on('member joined', function (username) {
+						$('#messages').append('<li><strong>' + username + ' joined</strong></li>');
+					})
+
+					socket.on('chat message received', function (data) {
+						$('#messages').append('<li><strong>' + data.user + ':</strong> ' + data.msg + '</li>');
+					})
+
+				})
+			})
+		</script>
+	</head>
+	<body>
+		<h1>Chat Test</h1>
+		<input type="text" name="nickname" value="" placeholder="Nickname" id="nickname">
+		<button id="connect">Connect</button>
+		<ul id="messages">
+		</ul>
+		<input type="text" name="message" value="" placeholder="Type your message here" id="message">
+		<button id="send">Send</button>
+	</body>
+</html>
